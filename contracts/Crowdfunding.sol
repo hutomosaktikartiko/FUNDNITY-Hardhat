@@ -1,14 +1,11 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.4.17;
 
-// Kemungkinan satu user bisa membuat banyak campaign
-// Tidak cocok kalau menyimpan seluruh list campaign didalam mapping
-
 contract Crowdfunding {
     address[] public campaigns;
 
     function createCampaign(string memory _image, string memory _title, string memory _description, uint _target, uint _endDate) public {
-        address newCampaign = new Campaign(_image, _title, _description, _target, _endDate);
+        address newCampaign = new Campaign(_image, _title, _description, _target, _endDate, msg.sender);
         campaigns.push(newCampaign);
     }
 
@@ -33,34 +30,24 @@ contract Campaign {
         address contributor;
     }
 
-    // constructor (string memory _image, string memory _title, string memory _description, uint _target, uint _endDate) payable {
-    //     image = _image;
-    //     title =  _title;
-    //     description =  _description;
-    //     target =  _target;
-    //     startDate = block.timestamp;
-    //     endDate = _endDate;
-    //     creatorAddress =  msg.sender;
-    // }
-
     modifier onlyCreator() {
         require (msg.sender == creatorAddress);
         _;
     }
 
-    function Campaign(string memory _image, string memory _title, string memory _description, uint _target, uint _endDate) public {
+    function Campaign(string memory _image, string memory _title, string memory _description, uint _target, uint _endDate, address _creatorAddress) public {
         image = _image;
         title =  _title;
         description =  _description;
         target =  _target;
         endDate = _endDate;
-        creatorAddress =  msg.sender;
+        creatorAddress = _creatorAddress;
     }
 
-    // TODO: Add message
+    // TODO: Tambah paramter untuk menambahkan pesan
     function contribute() public payable {
         require(isComplete == false);
-        require(endDate <= now);
+        require(now <= endDate);
         require(msg.value > 0);
 
         Contribute memory newContribute = Contribute({
