@@ -11,8 +11,7 @@ contract Crowdfunding {
         uint256 _target,
         uint256 _endDate
     ) public {
-        require(_endDate <= now);
-        require(_target <= 0);
+        require(_target > 0);
 
         address newCampaign = new Campaign(
             _image,
@@ -67,10 +66,12 @@ contract Campaign {
         creatorAddress = _creatorAddress;
     }
 
-    // TODO: Tambah paramter untuk menambahkan pesan
+    // TODO: Tambah parameter untuk menambahkan pesan
     function contribute() public payable {
         require(isComplete == false);
+        require(now <= endDate);
         require(msg.value > 0);
+        require(balance < target);
 
         Contribute memory newContribute = Contribute({
             amount: msg.value,
@@ -79,39 +80,17 @@ contract Campaign {
 
         contributors.push(newContribute);
         balance += msg.value;
-
-        if (balance >= target) {
-            isComplete = true;
-        }
-        if (now > endDate) {
-            isComplete = true;
-        }
     }
 
-    function deliverBalance(uint256 _value) public payable onlyCreator {
+    function deliverBalance() public payable onlyCreator {
+        require(isComplete == false);
         require(balance > 0);
-        require(_value > 0);
 
-        creatorAddress.transfer(_value);
+        creatorAddress.transfer(balance);
         isComplete = true;
     }
 
-    function getCampaign()
-        public
-        view
-        returns (
-            string memory,
-            string memory,
-            string memory,
-            uint256,
-            uint256,
-            uint256,
-            uint256,
-            bool,
-            address,
-            address
-        )
-    {
+    function getCampaign() public view returns (string memory, string memory, string memory, uint, uint, uint, uint, bool, address, address, uint) {
         return (
             image,
             title,
@@ -122,7 +101,8 @@ contract Campaign {
             endDate,
             isComplete,
             creatorAddress,
-            address(this)
+            address(this),
+            block.number
         );
     }
 
