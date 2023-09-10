@@ -1,17 +1,33 @@
 require("@nomiclabs/hardhat-waffle");
+require('dotenv').config({ path: './env/.env' });
+
+// var from .env
+const INFURA_PROJECT_ID = process.env.INFURA_PROJECT_ID;
+const GOERLI_WALLET_PRIVATE_KEY = process.env.GOERLI_WALLET_PRIVATE_KEY;
+const MUMBAI_WALLET_PRIVATE_KEY = process.env.MUMBAI_WALLET_PRIVATE_KEY;
+const GOERLI_INFURA_URL = process.env.GOERLI_INFURA_URL
+const MUMBAI_INFURA_URL = process.env.MUMBAI_INFURA_URL
 
 /**
  * @type import('hardhat/config').HardhatUserConfig
  */
 module.exports = {
-  solidity: "0.4.17",
+  defaultNetwork: "polygon_mumbai",
   networks: {
-    goerli: {
-      // url: 'https://eth-rinkeby.alchemyapi.io/v2/EYABeRjKV3KIPeqTz-FqNtJdTm2XRHCR',
-      url: 'https://goerli.infura.io/v3/a07f9e63ceb740dda9a9aef0df0fd64d',
-      accounts: [
-        'b8f06d9458c3d173fb25939ad8dbfd0e218ee2547f19fa05cf29d2519c361af2'
-      ]
+    hardhat: {
     },
-  }
+    polygon_mumbai: {
+      url: `${MUMBAI_INFURA_URL}/${INFURA_PROJECT_ID}`,
+      accounts: [MUMBAI_WALLET_PRIVATE_KEY]
+    }
+  },
+  solidity: {
+    version: "0.4.17",
+    settings: {
+      optimizer: {
+        enabled: true,
+        runs: 200
+      }
+    }
+  },
 };

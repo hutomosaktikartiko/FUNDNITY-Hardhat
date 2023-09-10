@@ -4,6 +4,14 @@ pragma solidity ^0.4.17;
 contract Crowdfunding {
     address[] public campaigns;
 
+    event CampaignCreated(
+        address indexed creatorAddress,
+        address indexed campaignAddress,
+        string campaignTitle,
+        uint256 campaignTarget,
+        uint256 campaignEndDate
+    );
+
     function createCampaign(
         string memory _image,
         string memory _title,
@@ -22,6 +30,8 @@ contract Crowdfunding {
             msg.sender
         );
         campaigns.push(newCampaign);
+
+        CampaignCreated(msg.sender, newCampaign, _title, _target, _endDate);
     }
 
     function getCampaigns() public view returns (address[]) {
@@ -39,6 +49,14 @@ contract Campaign {
     bool public isComplete;
     address public creatorAddress;
     Contribute[] public contributors;
+
+    // event
+    event ContributionMade(
+        address indexed campaignAddress,
+        address indexed contributorAddress,
+        uint256 amount
+    );
+    event CampaignCompleted(address indexed campaignAddress, uint256 amount);
 
     struct Contribute {
         uint256 amount;
@@ -66,7 +84,6 @@ contract Campaign {
         creatorAddress = _creatorAddress;
     }
 
-    // TODO: Tambah parameter untuk menambahkan pesan
     function contribute() public payable {
         require(isComplete == false);
         require(now <= endDate);
@@ -80,6 +97,8 @@ contract Campaign {
 
         contributors.push(newContribute);
         balance += msg.value;
+
+        ContributionMade(address(this), msg.sender, msg.value);
     }
 
     function deliverBalance() public payable onlyCreator {
@@ -88,9 +107,27 @@ contract Campaign {
 
         creatorAddress.transfer(balance);
         isComplete = true;
+
+        CampaignCompleted(address(this), balance);
     }
 
-    function getCampaign() public view returns (string memory, string memory, string memory, uint, uint, uint, uint, bool, address, address, uint) {
+    function getCampaign()
+        public
+        view
+        returns (
+            string memory,
+            string memory,
+            string memory,
+            uint,
+            uint,
+            uint,
+            uint,
+            bool,
+            address,
+            address,
+            uint
+        )
+    {
         return (
             image,
             title,
